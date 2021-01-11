@@ -8,7 +8,7 @@
       throw new SyntaxError('Uncaught SyntaxError: Invalid or unexpected token');
     }
 
-    if (typeof object !== 'object') {
+    if (typeof object !== 'object' && typeof object !== 'function') {
       return false;
     }
 
@@ -16,7 +16,12 @@
       return true;
     }
 
-    return isPrototypeOf(prototype, Object.getPrototypeOf(object));
+    try {
+      object = Object.getPrototypeOf(object);
+      return isPrototypeOf(prototype, object);
+    } catch (e) {
+      return false;
+    }
   }
 
   window.isPrototypeOf = isPrototypeOf;
@@ -42,9 +47,16 @@
         eq(e instanceof SyntaxError, true);
       }
     },
-    'If prototype is not an object, it should return false.': function() {
-      var object = {};
-      eq(isPrototypeOf(object, 1), false);
+    'If \'typeof\' object is not equal to \'object\' or \`function, it should return false.': function() {
+      eq(isPrototypeOf(Object.prototype, 1), false);
+      eq(isPrototypeOf(Object.prototype, '2'), false);
+      eq(isPrototypeOf(Object.prototype, true), false);
+    },
+    'If \'typeof\' object is equal to \'object\', it should return true.': function() {
+      eq(isPrototypeOf(Object.prototype, {}), true);
+    },
+    'If \'typeof\' object is equal to \'function\', it should return true.': function() {
+      eq(isPrototypeOf(Object.prototype, function() {}), true);
     },
     'It should work as intended.': function() {
       var canine = {
@@ -54,6 +66,9 @@
       };
       var dog = Object.create(canine);
       eq(isPrototypeOf(canine, dog), true);
+
+      var empty = Object.create(null);
+      eq(isPrototypeOf(dog, empty), false);
     },
     'It should work for any number of prototype chains.': function() {
       var canine = {
