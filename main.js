@@ -22,7 +22,7 @@
     } catch (e) {
       return false;
     }
-  }
+  };
 
   window.isPrototypeOf = isPrototypeOf;
 
